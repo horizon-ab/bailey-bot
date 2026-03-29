@@ -19,6 +19,7 @@ confidence_manual = 0.7
 
 @bot.event()
 async def on_ready():
+    pass
 
 @bot.event()
 async def on_message(message):
