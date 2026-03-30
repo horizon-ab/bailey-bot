@@ -7,7 +7,7 @@ MODEL_NAME = "distilbert-base-uncased"
 class ScamScorer(nn.Module):
     
     def __init__(self, model_name, vocab_size=None):
-        super(LLMScorer, self).__init__()
+        super(ScamScorer, self).__init__()
         self.base_model = AutoModel.from_pretrained(model_name)
 
         if vocab_size:
