@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoConfig
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -16,7 +16,7 @@ def train():
     # Config
     model_name = "distilbert-base-uncased"
     batch_size = 16
-    epochs = 3
+    epochs = 4
     lr = 2e-5
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data_path = "./data/discord-phishing-scam-detection.csv"
@@ -27,7 +27,7 @@ def train():
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.add_special_tokens({
-        'additional_special_tokens' : ["<URL>", "<USER>", "<EMOJI>", "<DISCORD_INVITE>"]
+        'additional_special_tokens' : ["<URL>", "<USER>", "<EMOJI>", "<DISCORD_INVITE>", "<GIVEAWAY>", "<DM_ME>"]
     })
 
     # Model
@@ -35,6 +35,20 @@ def train():
 
     # Dataset
     df = pd.read_csv(data_path, sep=',', names=['label', 'msg_content'], header=0, encoding='latin1')
+
+    # Balancing
+
+    scams = df[df['label'] == 1.0]
+    safe = df[df['label'] == 0.0]
+
+    if len(safe) > len(scams):
+        safe_balanced = safe.sample(n=len(scams) * 4, random_state=42)
+        df_balanced = pd.concat([scams, safe_balanced])
+    else:
+        scams_balanced = scams.sample(n=len(safe) * 1/4, random_state=42)
+        df_balanced = pd.concat([safe, scams_balanced])
+
+    df = df_balanced.sample(frac=1, random_state=42).reset_index(drop=True)
 
     scores = df.iloc[:, 0].tolist() 
     texts = df.iloc[:, 1:].astype(str).agg(','.join, axis=1).tolist() 
@@ -107,10 +121,13 @@ def train():
     output_dir = f"./outputs/run_{timestamp}"
     os.makedirs(output_dir, exist_ok=True)
 
+    config = AutoConfig.from_pretrained("distilbert-base-uncased")
+
     model_save_path = os.path.join(output_dir, "final_model.pt")
     torch.save(model.state_dict(), model_save_path)
     tokenizer.save_pretrained(output_dir)
-    print("Model and Tokenizer saved successfully!")
+    config.save_pretrained(output_dir)
+    print("Model, Tokenizer, and Config saved successfully!")
 
 if __name__ == "__main__":
     train()
