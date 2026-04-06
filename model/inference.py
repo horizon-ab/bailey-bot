@@ -3,7 +3,7 @@ import re
 import emoji
 from transformers import AutoTokenizer
 
-from src.model import ScamScorer
+from model.src.model import ScamScorer
 
 def clean_text(text):
 
@@ -42,7 +42,7 @@ def predict(text, model, tokenizer, device):
     
     cleaned_text = clean_text(text)
 
-    print(cleaned_text)
+    # print(cleaned_text)
 
     inputs = tokenizer(
         cleaned_text,

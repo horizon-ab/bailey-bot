@@ -12,25 +12,7 @@ Bailey Bot uses an LLM (DeepSeek-R1-Distill-Llama-8B from HuggingFace) to review
 
 ## Commands
 
-`/test`
-Enables/disables testing mode. In testing mode the bot is not allowed to enforce judgement (i.e. ban users).
-
-`/set`
-Adds a channel to be monitored.
-
-`/remove`
-Removes a channel to be monitored.
-
-`/review`
-
-`/confidence_auto`
-Sets confidence threshold for auto ban. If `score >= confidence_auto`, then the bot will automatically enforce judgement. By default, this is `0.9`.
-
-`/confidence_manual`
-Sets confidence threshold for manual review. If `confidence_auto > score >= confidence_manual`, then the bot will ping a moderator for manual review. By default, this is `0.7`
-
-`/message_threshold`
-Sets message threshold for monitoring. The first `message_threshold` messages will be checked by the bot. 
+TODO
 
 ## Model
 
@@ -46,6 +28,21 @@ Note that these instructions are written for macOS. I pray that you are knowledg
 4. Run the training script with `python src/main.py`. This took about 4-5 minutes on my M1 Pro Mac. 
 5. If you want to test the results of the new model, first find the latest run folder by running `ls outputs`(note that the format is YYYYMMDD-HHMMSS) and copy the name of that folder. Go into `inference.py` and change `RUN_FOLDER` with the name of the copied folder. Finally run `python inference.py`. The model's evaluations will be displayed under each text.
 
+## Assumptions and Limitations
+
+This bot is really intended for small scale servers where the member count is small and members aren't talking that often. I mean I literally wrote it for the UCSBreakin' Discord server. UCSBreakin' is not that big (although we still get scammers somehow). As such, although the bot is flexible enough to be used in multiple servers and can be configured relatively easily, it is not intended to scale very well. I assume it would work comfortably for 25 servers, but I would be concerned if the bot were to monitor 100+ servers or a few really, really big servers. But if you somehow managed to invite the bot to your server without any sort of connection to me, you'll probably be fine—I don't imagine that that many servers are already using it.
+
+Anyways I have a list of features in mind that could help with scaling, ease of accessibility, and general quality:
+
+1. Monitor only the first `n` messages a user sends and then mark them as safe, which will prevent unnecessary calls to the model
+2. Save server configurations in a `.json` file for when the bot crashes
+3. An easier deployment pipeline (I don't think I'll be running Bailey Bot forever with my free plan, so someone else will have to deploy it themselves)
+4. A better classification model
+5. Better documentation
+
+
+If (for whatever reason) you want to implement the above changes (or something else), then feel free to contact me about that. 
+
 ## Contact Me
 
-If you have any questions about anything, contact me on Discord at @bay.salt or email me at baileyasay@gmail.com. 
+If you have any questions about anything, contact me on Discord at @bay.salt or email me at baileyasay@gmail.com. FYI I'm kind of a goon because I had Gemini help out a lot for this project.

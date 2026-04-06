@@ -1,4 +1,8 @@
+.env
 .venv/
+*.json
+*.json.bak
 bot-env/
 __pycache__/
 model/outputs/
+
