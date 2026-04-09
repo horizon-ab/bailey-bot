@@ -9,7 +9,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from model.inference import load_model, predict
-from utils import ServerConfig
+from utils import ServerConfig, ScamReviewView
 
 class BaileyBot(commands.Bot):
     def __init__(self, run_dir, *args, **kwargs):
@@ -68,6 +68,60 @@ RUN_DIR = "./model/outputs/run_20260331-213039"
 
 bot = BaileyBot(run_dir=RUN_DIR, command_prefix='$', intents=intents)
 
+# Judgement
+
+# Displays during test mode
+async def warning(bot, message, score):
+
+    config = bot.get_config(message.guild.id) 
+
+    level = "High" if score > config.confidence_auto else "Medium"
+    log_channel = bot.get_channel(config.log_channel_id)
+
+    target_channel = log_channel if log_channel else message.channel
+    warning_text = f"Message: {message.content}\nWarning: {level} Likelihood of Scam: {score:.2f}"
+    if target_channel != log_channel:
+        warning_text += "\nNOTE: Please set up a log channel with the command `$set log <channel>`"
+
+    await target_channel.send(warning_text)
+
+async def judgement(bot, message, score):
+
+    config = bot.get_config(message.guild.id)
+    log_channel = bot.get_channel(config.log_channel_id)
+
+    if score > config.confidence_auto:
+        try:
+            await message.author.ban(delete_message_seconds=259200,
+                                     reason=f"Bailey-Bot Autoban: Score {score:.2f} - No sale/scamming"
+                                    )
+            log_text = f"Message: {message.content}\nHigh Likelihood of Scam: {score:.2f}\nBan has been enforced on user {message.author.name}\n"
+
+        except discord.Forbidden:
+            log_text = f"Message: {message.content}\nHigh Likelihood of Scam: {score:.2f}\nBan was attempted, but permissions were lacking to do so."  
+        except discord.HTTPException:
+            log_text = f"Message: {message.content}\nHigh Likelihood of Scam: {score:.2f}\nBan was attempted, but failed."  
+
+        target = log_channel if log_channel else message.channel
+        if target != log_channel:
+            log_text += "\nNOTE: Please set up a log channel with the command `$set log <channel>`"
+           
+        await target.send(log_text)
+
+    elif score > config.confidence_manual:
+        view = ScamReviewView(bot, message, score)
+        target = log_channel if log_channel else message.channel
+
+        log_text = f"Manual Review Needed\nUser: {message.author.name}\nScore: {score:.2f}\nMessage: {message.content}"
+
+        if target != log_channel:
+            log_text += "\nNOTE: Please set up a log channel with the command `$set log <channel>`"
+
+        await target.send(
+                content=log_text
+                view=view
+                )
+
 # Events
 
 @bot.event
@@ -97,19 +151,13 @@ async def on_message(message):
 
     log_channel = bot.get_channel(config.log_channel_id)
 
-    if score > config.confidence_auto:
-        if not log_channel:
-            await message.channel.send(f"Message: {message.content}\nHigh Likelihood of Scam: {score:.2f}\nNOTE: Please set up a log_channel with the command `/set log <channel>`")
-            return            
+    # Score is past the minimum threshold
+    if score > config.confidence_manual:
+        if config.is_testing:
+            await warning(bot, message, score)
+        else:
+            await judgement(bot, message, score)
 
-        await log_channel.send(f"Message: {message.content}\nHigh Likelihood of Scam: {score:.2f}")
-    elif score > config.confidence_manual:
-        if not log_channel:
-            await message.channel.send(f"Message: {message.content}\nMedium Likelihood of Scam: {score:.2f}\nNOTE: Please set up a log_channel with the command `/set log <channel>`")
-            return            
-        await log_channel.send(f"Message: {message.content}\nMedium Likelihood of Scam: {score:.2f}")
-
-    # await bot.process_commands(message)
 
 @bot.event
 async def on_ready():

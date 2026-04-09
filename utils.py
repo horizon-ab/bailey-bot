@@ -1,4 +1,4 @@
-
+# utils.py
 
 class ServerConfig:
     def __init__(self, guild_id):
@@ -34,3 +34,26 @@ class ServerConfig:
         config.log_channel_id = data.get("log_channel_id")
         return config
 
+class ScamReviewView(discord.ui.View):
+    def __init__(self, bot, msg, score):
+        super().__init__(timeout=3600)
+        self.bot = bot
+        self.msg = msg
+        self.score = score
+
+    @discord.ui.button(label="Ban User", style=discord.ButtonStyle.danger)
+    async def ban_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+        if not interaction.user.guild_permissions.ban_members:
+            return await interaction.response.send_message("You don't have permission to ban!", ephemeral=True)
+
+        try:
+            await self.msg.author.ban(reason=f"Manual Scam Review: {self.score:.2f}")
+            await interaction.response.edit_message(content=f"Banned by {interaction.user.name}", view=None)
+
+        except discord.Forbidden:
+            await interaction.response.send_message("Error: My role is too low to ban this user.", ephemeral=True)
+
+    @discord.ui.button(label="Ignore", style=discord.ButtonStyle.secondary)
+    async def ignore_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(content=f"Ignored by {interaction.user.name}", view=None)
