@@ -222,8 +222,11 @@ async def global_check(ctx):
 
 @bot.command(name="help")
 async def help(ctx):
+    """
+    Returns a help menu for running Bailey Bot.
+    """
     embed = discord.Embed(title="Bailey Bot Help Menu",
-                          description="Guide to configuring Bailey Bot",
+                          description="Guide to running Bailey Bot",
                           color=discord.Color.blue()
                          )
     quick_start = """1. Set Log Channel: `$set log <channel>`

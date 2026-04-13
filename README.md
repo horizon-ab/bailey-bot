@@ -4,15 +4,60 @@
 
 ### Monitoring
 
-Bailey Bot monitors all messages sent in specified channels. Specified channels can be set by moderators.  Only the first few messages (specified by `message_threshold`) sent by a given user will be checked.
+Bailey Bot monitors new messages sent in specified channels. Specified channels can be added and removed. If there are no specified channels, then all channels are checked. The bot can also be configured so that all messages sent in the specified channels are monitored. Any suspected scammers or sellers will be posted by the bot in a specified log channel, where moderators will be pinged to check the user behind the message.
 
 ### Judgement
 
-Bailey Bot uses an LLM (DeepSeek-R1-Distill-Llama-8B from HuggingFace) to review the message content and will return a judgement score. If the judgement score is above a certain threshold, it will automatically delete the message and ban the offending user. If the judgement score is above a lower threshold, it will ping a moderator for manual review. If testing mode is enabled, only manual review will be permitted. Both of these thresholds can be set by a moderator.
+Bailey Bot uses an LLM (DeepSeek-R1-Distill-Llama-8B from HuggingFace) to review the message content and will return a judgement score. If the judgement score is above a certain threshold, it will automatically delete the message and ban the offending user. If the judgement score is above a lower threshold, it will ping a moderator for manual review. If testing mode is enabled, only text warnings will be sent. Both of these thresholds can be set by a moderator.
+
+## Quick Start
+
+1. **Set Log Channel:** `$set log <channel>`
+2. **Add Channels to Monitor:** `$add monitor <channel>`
+3. **Add Monitoring Roles:** `$add monitor_role <role>`
+4. **Toggle Active:** `$set active True` (default is True)
 
 ## Commands
 
-TODO
+All commands (except for `$help`) must be run by someone with role permissions (which I'll call a moderator), specified by roles added with `$add monitor_role <role>`. If there are no roles in this list, then anyone can run the commands. 
+
+`$help`
+Returns a help menu for running Bailey Bot.
+
+`$summary`
+Generates a summary of the bot's current configuration.
+
+`$set active <bool>`
+Sets whether or not the bot is active.
+
+`$set test <bool>`
+Sets whether or not the bot is in test mode.
+
+`$set new_only <bool>`
+Sets whether or not the bot will only check messages sent by new members.
+
+`$set auto <0.6-1.0>`
+Sets the minimum score required for the bot to automatically ban (outside of test mode).
+This score must be between 0.6 and 1.0 and greater than or equal to the manual score.
+
+`$set manual <0.6-1.0>`
+Sets the minimum score required for the bot to request a manual ban (outside of test mode).
+This score must be between 0.6 and 1.0 and less than or equal to the automatic score.
+
+`$set log <channel>`
+Sets the channel that all logs are sent to. It is recommended that this is set to a private, permissioned channel.
+
+`$add monitor <channel>`
+Adds a new channel to be monitored by the bot. If no monitors are set, then all channels are monitored by default.
+
+`$add monitor_role <role>`
+Adds a new role to act as a monitor to the bot's activity (meaning they will be pinged every time a scam is detected).
+
+`$remove monitor <channel>`
+Removes a channel to be monitored by the bot. If no monitors are set, then all channels are monitored by default.
+
+`$remove monitor_role <role>`
+Removes a role from acting as a monitor to the bot's activity (meaning they will be pinged every time a scam is detected).
 
 ## Model
 
