@@ -1,4 +1,5 @@
 import torch
+import os
 import re
 import emoji
 from transformers import AutoTokenizer
@@ -31,6 +32,10 @@ def load_model(run_dir):
     model = ScamScorer("distilbert-base-uncased", vocab_size=len(tokenizer))
 
     weights_path = f"{run_dir}/final_model.pt"
+    if not os.path.exists(weights_path):
+        raise FileNotFoundError(f"Weights not found at {model_path}. Did you run training?")
+
+
     model.load_state_dict(torch.load(weights_path, map_location=device))
 
     model.to(device)

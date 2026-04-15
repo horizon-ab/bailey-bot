@@ -66,9 +66,12 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-token = os.getenv("DISCORD_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
+RUN_DIR = os.getenv("MODEL_PATH") 
 
-RUN_DIR = "./model/outputs/run_20260331-213039"
+if not RUN_DIR or not os.path.exists(RUN_DIR):
+    print(f"Error: Model directory {RUN_DIR} not found!")
+    exit(1)
 
 bot = BaileyBot(run_dir=RUN_DIR, command_prefix='$', intents=intents)
 bot.remove_command('help')
@@ -188,6 +191,12 @@ async def on_ready():
     print("Bailey Bot is ready!")
 
 @bot.event
+async def on_guild_join(guild):
+    channel = guild.system_channel or next((x for x in guild.text_channels if x.permissions_for(guild.me).send_messages), None)
+    if channel:
+        await channel.send("Thanks for inviting Bailey Bot! Type `$help` to see the Quick Start guide.")
+
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"Missing argument: `{error.param.name}`.\nUsage: `{ctx.prefix}{ctx.command.qualified_name} <{error.param.name}>`")
@@ -238,6 +247,7 @@ async def help(ctx):
     embed.add_field(name="$set", value="Adjust bot settings (active, auto, manual, new_only).", inline=False)
     embed.add_field(name="$add/remove", value="Manage monitored channels and monitoring roles.", inline=False)
     embed.add_field(name="$summary", value="View current server configuration.", inline=False)
+    embed.add_field(name="Github", value="https://github.com/horizon-ab/bailey-bot", inline=False)
 
     await ctx.send(embed=embed)
     
@@ -468,4 +478,4 @@ async def remove_monitor_role(ctx, role: discord.Role):
 
 
 
-bot.run(token)
+bot.run(TOKEN)

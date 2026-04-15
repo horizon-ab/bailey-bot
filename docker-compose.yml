@@ -1,0 +1,10 @@
+services:
+  bailey-bot:
+    build: .
+    container_name: bailey-bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./model/outputs:/app/model/outputs
+      - ./config.json:/app/config.json
